@@ -1,0 +1,56 @@
+{
+  "name": "binaryalan/hyperf-agents",
+  "description": "High-Concurrency Coroutine Multi-Agent Orchestration & OpenAI Gateway for Hyperf",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "hyperf",
+    "openai",
+    "agent",
+    "swarm",
+    "multi-agent",
+    "swoole",
+    "swow",
+    "coroutine",
+    "llm"
+  ],
+  "authors": [
+    {
+      "name": "Binary Alan",
+      "homepage": "https://github.com/BinaryAlan"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "hyperf/coroutine": "^3.1|^3.2",
+    "hyperf/di": "^3.1|^3.2",
+    "hyperf/guzzle": "^3.1|^3.2",
+    "hyperf/circuit-breaker": "^3.1|^3.2",
+    "hyperf/retry": "^3.1|^3.2",
+    "hyperf/context": "^3.1|^3.2",
+    "psr/http-message": "^1.1|^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "mockery/mockery": "^1.6",
+    "swoole/ide-helper": "^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "HyperfAgents\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "HyperfAgents\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "hyperf": {
+      "config": "HyperfAgents\\ConfigProvider"
+    }
+  }
+}
