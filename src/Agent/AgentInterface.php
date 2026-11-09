@@ -15,7 +15,7 @@ interface AgentInterface
     public function getInstructions(): string;
 
     /**
-     * @return array<string, ToolInterface|callable>
+     * @return array<string, array{handler: ToolInterface|callable, description: string, parameters: array}>
      */
     public function getTools(): array;
 

@@ -59,7 +59,7 @@ class ToolTest extends TestCase
                 'id' => 'call_1',
                 'function' => [
                     'name' => 'add',
-                    'arguments' => json_encode(['a' => 10, 'b' => 20]),
+                    'arguments' => (string) json_encode(['a' => 10, 'b' => 20]),
                 ],
             ],
         ];
@@ -118,14 +118,14 @@ class ToolTest extends TestCase
 
         $this->assertCount(1, $results);
         $this->assertFalse($results[0]->success);
-        $this->assertStringContainsString('Database connection lost', $results[0]->errorMessage);
+        $this->assertStringContainsString('Database connection lost', (string) $results[0]->errorMessage);
     }
 
     public function testConcurrentToolExecutorWithToolInterface(): void
     {
         $executor = new ConcurrentToolExecutor();
 
-        $tool = new class implements ToolInterface {
+        $tool = new class () implements ToolInterface {
             public function getName(): string
             {
                 return 'ping';

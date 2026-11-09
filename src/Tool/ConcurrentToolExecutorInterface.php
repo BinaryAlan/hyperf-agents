@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace HyperfAgents\Tool;
 
-use Hyperf\Coroutine\Coroutine;
-use function Hyperf\Coroutine\parallel;
-
 interface ConcurrentToolExecutorInterface
 {
     /**

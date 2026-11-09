@@ -7,6 +7,7 @@ namespace HyperfAgents\Tool;
 use Hyperf\Coroutine\Coroutine;
 use HyperfAgents\Agent\Handoff;
 use Throwable;
+
 use function Hyperf\Coroutine\parallel;
 
 class ConcurrentToolExecutor implements ConcurrentToolExecutorInterface
@@ -92,7 +93,7 @@ class ConcurrentToolExecutor implements ConcurrentToolExecutorInterface
             return new ToolResult(
                 toolCallId: $id,
                 toolName: $name,
-                output: "Execution failed: " . $e->getMessage(),
+                output: 'Execution failed: ' . $e->getMessage(),
                 success: false,
                 errorMessage: $e->getMessage(),
                 executionTimeMs: $elapsed

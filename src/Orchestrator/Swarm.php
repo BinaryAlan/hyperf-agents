@@ -13,12 +13,16 @@ use RuntimeException;
 
 class Swarm implements SwarmInterface
 {
+    protected OpenAIClient $client;
+
+    protected ConcurrentToolExecutorInterface $toolExecutor;
+
     public function __construct(
-        protected ?OpenAIClient $client = null,
-        protected ?ConcurrentToolExecutorInterface $toolExecutor = null
+        ?OpenAIClient $client = null,
+        ?ConcurrentToolExecutorInterface $toolExecutor = null
     ) {
-        $this->client ??= new OpenAIClient();
-        $this->toolExecutor ??= new ConcurrentToolExecutor();
+        $this->client = $client ?? new OpenAIClient();
+        $this->toolExecutor = $toolExecutor ?? new ConcurrentToolExecutor();
     }
 
     /**

@@ -3,6 +3,8 @@
 **High-Concurrency Coroutine Multi-Agent Orchestration & Enterprise OpenAI Gateway for Hyperf (PHP 8.2+)**
 
 [![Latest Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)](https://github.com/BinaryAlan/hyperf-agents)
+[![CI](https://github.com/BinaryAlan/hyperf-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/BinaryAlan/hyperf-agents/actions)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)](https://phpstan.org/)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.2-8892BF.svg)](https://php.net)
 [![Hyperf](https://img.shields.io/badge/hyperf-%3E%3D3.1-red.svg)](https://hyperf.io)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)

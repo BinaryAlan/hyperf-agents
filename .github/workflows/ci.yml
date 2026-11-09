@@ -7,9 +7,33 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
-    name: PHP ${{ matrix.php }} Tests
+  code-quality:
+    name: Code Quality (PHPStan & Style)
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, json, curl
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHPStan static analysis
+        run: composer phpstan
+
+      - name: Check code formatting (PHP-CS-Fixer)
+        run: composer cs-check
+
+  test:
+    name: Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    needs: code-quality
     strategy:
       matrix:
         php: ['8.2', '8.3']
@@ -28,5 +52,5 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Run test suite
-        run: ./vendor/bin/phpunit
+      - name: Run PHPUnit test suite
+        run: composer test

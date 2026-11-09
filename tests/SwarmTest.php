@@ -10,8 +10,6 @@ use HyperfAgents\Client\OpenAIClient;
 use HyperfAgents\Orchestrator\RunResult;
 use HyperfAgents\Orchestrator\Swarm;
 use HyperfAgents\Orchestrator\SwarmInterface;
-use HyperfAgents\Tool\ConcurrentToolExecutor;
-use HyperfAgents\Tool\ToolResult;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +26,7 @@ class SwarmTest extends TestCase
 
     public function testSwarmDirectResponseWithoutTools(): void
     {
+        /** @var OpenAIClient&Mockery\MockInterface $mockClient */
         $mockClient = Mockery::mock(OpenAIClient::class);
         $mockClient->shouldReceive('chatCompletions')
             ->once()
@@ -61,6 +60,7 @@ class SwarmTest extends TestCase
 
     public function testSwarmWithToolCallAndExecution(): void
     {
+        /** @var OpenAIClient&Mockery\MockInterface $mockClient */
         $mockClient = Mockery::mock(OpenAIClient::class);
 
         // Turn 1: model returns tool call
@@ -78,7 +78,7 @@ class SwarmTest extends TestCase
                                     'type' => 'function',
                                     'function' => [
                                         'name' => 'multiply',
-                                        'arguments' => json_encode(['a' => 6, 'b' => 7]),
+                                        'arguments' => (string) json_encode(['a' => 6, 'b' => 7]),
                                     ],
                                 ],
                             ],
@@ -127,6 +127,7 @@ class SwarmTest extends TestCase
 
     public function testSwarmWithHandoff(): void
     {
+        /** @var OpenAIClient&Mockery\MockInterface $mockClient */
         $mockClient = Mockery::mock(OpenAIClient::class);
 
         $specialistAgent = new Agent('RefundSpecialist', 'Handle refunds');

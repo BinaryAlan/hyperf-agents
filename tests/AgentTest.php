@@ -58,7 +58,7 @@ class AgentTest extends TestCase
 
     public function testAddToolInterfaceInstance(): void
     {
-        $toolMock = new class implements ToolInterface {
+        $toolMock = new class () implements ToolInterface {
             public function getName(): string
             {
                 return 'weather_lookup';

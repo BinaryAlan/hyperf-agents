@@ -54,6 +54,6 @@ $result = $swarm->run(
     ]
 );
 
-echo "Final Agent: " . $result->lastAgent->getName() . PHP_EOL;
-echo "Response: " . $result->getContent() . PHP_EOL;
-echo "Completed in " . $result->turns . " turns (" . round($result->totalLatencyMs, 2) . " ms)" . PHP_EOL;
+echo 'Final Agent: ' . $result->lastAgent->getName() . PHP_EOL;
+echo 'Response: ' . $result->getContent() . PHP_EOL;
+echo 'Completed in ' . $result->turns . ' turns (' . round($result->totalLatencyMs, 2) . ' ms)' . PHP_EOL;

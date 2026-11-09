@@ -39,8 +39,9 @@ class ToolResult
 
     public function toMessageContent(): string
     {
-        if ($this->isHandoff()) {
-            return "Transferred to agent: " . $this->getHandoff()->getTargetAgent()->getName();
+        $handoff = $this->getHandoff();
+        if ($handoff !== null) {
+            return 'Transferred to agent: ' . $handoff->getTargetAgent()->getName();
         }
 
         if (is_string($this->output)) {
