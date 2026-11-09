@@ -106,4 +106,35 @@ class AgentTest extends TestCase
         $this->assertSame(['customer_tier' => 'VIP', 'account_id' => 12345], $handoff->getContextVariables());
         $this->assertSame('Transferring VIP user to billing specialist.', $handoff->getHandoffMessage());
     }
+
+    public function testDynamicInstructionsWithContextVariables(): void
+    {
+        $agent = new Agent(
+            name: 'PersonalizedAgent',
+            instructions: fn (array $context) => 'Hello user #' . ($context['user_id'] ?? 'guest')
+        );
+
+        $this->assertSame('Hello user #guest', $agent->getInstructions());
+        $this->assertSame('Hello user #999', $agent->getInstructions(['user_id' => 999]));
+        $this->assertSame('[Dynamic Instructions]', $agent->toArray()['instructions']);
+    }
+
+    public function testAddHandoffHelper(): void
+    {
+        $triage = new Agent('TriageAgent', 'Route inquiries');
+        $billing = new Agent('BillingSpecialist', 'Billing');
+
+        $triage->addHandoff($billing);
+
+        $tools = $triage->getTools();
+        $this->assertArrayHasKey('transfer_to_billing_specialist', $tools);
+
+        $handler = $tools['transfer_to_billing_specialist']['handler'];
+        $this->assertIsCallable($handler);
+
+        /** @var Handoff $handoff */
+        $handoff = $handler();
+        $this->assertInstanceOf(Handoff::class, $handoff);
+        $this->assertSame($billing, $handoff->getTargetAgent());
+    }
 }

@@ -17,8 +17,19 @@ class RunResult
         public AgentInterface $lastAgent,
         public array $contextVariables = [],
         public int $turns = 0,
-        public float $totalLatencyMs = 0.0
+        public float $totalLatencyMs = 0.0,
+        public RunStatus $status = RunStatus::COMPLETED
     ) {
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === RunStatus::COMPLETED;
+    }
+
+    public function isMaxTurnsReached(): bool
+    {
+        return $this->status === RunStatus::MAX_TURNS_REACHED;
     }
 
     public function getLastMessage(): ?array

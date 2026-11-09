@@ -188,5 +188,106 @@ class SwarmTest extends TestCase
         $this->assertSame('RefundSpecialist', $result->lastAgent->getName());
         $this->assertSame('Refund processed successfully.', $result->getContent());
         $this->assertTrue($result->contextVariables['refund_authorized'] ?? false);
+        $this->assertTrue($result->isCompleted());
+        $this->assertFalse($result->isMaxTurnsReached());
+    }
+
+    public function testMaxTurnsReachedStatus(): void
+    {
+        /** @var OpenAIClient&Mockery\MockInterface $mockClient */
+        $mockClient = Mockery::mock(OpenAIClient::class);
+
+        // Infinite loop: model keeps asking for tool call
+        $mockClient->shouldReceive('chatCompletions')
+            ->times(3)
+            ->andReturn([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => null,
+                            'tool_calls' => [
+                                [
+                                    'id' => 'call_loop',
+                                    'type' => 'function',
+                                    'function' => [
+                                        'name' => 'loop_tool',
+                                        'arguments' => '{}',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+        $agent = new Agent('Looper', 'loop instructions');
+        $agent->addTool('loop_tool', fn () => 'looping...');
+
+        $swarm = new Swarm(client: $mockClient);
+        $result = $swarm->run(
+            agent: $agent,
+            messages: [['role' => 'user', 'content' => 'start loop']],
+            maxTurns: 3
+        );
+
+        $this->assertSame(3, $result->turns);
+        $this->assertTrue($result->isMaxTurnsReached());
+        $this->assertFalse($result->isCompleted());
+    }
+
+    public function testDynamicInstructionsInSwarm(): void
+    {
+        /** @var OpenAIClient&Mockery\MockInterface $mockClient */
+        $mockClient = Mockery::mock(OpenAIClient::class);
+
+        $mockClient->shouldReceive('chatCompletions')
+            ->once()
+            ->with(Mockery::on(function (array $payload) {
+                // Ensure system message contains dynamic context
+                return isset($payload['messages'][0]['content'])
+                    && str_contains($payload['messages'][0]['content'], 'VIP-999');
+            }))
+            ->andReturn([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => 'Welcome VIP!',
+                        ],
+                    ],
+                ],
+            ]);
+
+        $agent = new Agent(
+            name: 'VipAgent',
+            instructions: fn (array $ctx) => "System prompt with user {$ctx['tier']}"
+        );
+
+        $swarm = new Swarm(client: $mockClient);
+        $result = $swarm->run(
+            agent: $agent,
+            messages: [['role' => 'user', 'content' => 'hello']],
+            contextVariables: ['tier' => 'VIP-999']
+        );
+
+        $this->assertSame('Welcome VIP!', $result->getContent());
+        $this->assertTrue($result->isCompleted());
+    }
+
+    public function testLlmApiExceptionOnMalformedResponse(): void
+    {
+        /** @var OpenAIClient&Mockery\MockInterface $mockClient */
+        $mockClient = Mockery::mock(OpenAIClient::class);
+
+        $mockClient->shouldReceive('chatCompletions')
+            ->once()
+            ->andReturn([]); // empty choices
+
+        $this->expectException(\HyperfAgents\Exception\LlmApiException::class);
+
+        $agent = new Agent('FailAgent', 'fail');
+        $swarm = new Swarm(client: $mockClient);
+        $swarm->run($agent, [['role' => 'user', 'content' => 'hi']]);
     }
 }

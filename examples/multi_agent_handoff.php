@@ -38,10 +38,9 @@ $billingAgent->addTool(
     ]
 );
 
-// Add handoff from Triage to Billing
-$triageAgent->addTool(
-    name: 'transfer_to_billing',
-    tool: fn () => new Handoff($billingAgent),
+// Add handoff from Triage to Billing via ergonomic helper
+$triageAgent->addHandoff(
+    targetAgent: $billingAgent,
     description: 'Transfer conversation to BillingAgent for payments and refund issues.'
 );
 

@@ -6,8 +6,8 @@ namespace HyperfAgents\Client;
 
 use GuzzleHttp\Client;
 use Hyperf\Guzzle\ClientFactory;
+use HyperfAgents\Exception\LlmApiException;
 use Psr\Container\ContainerInterface;
-use RuntimeException;
 
 class OpenAIClient
 {
@@ -50,18 +50,22 @@ class OpenAIClient
     public function chatCompletions(array $payload): array
     {
         if (empty($this->apiKey)) {
-            throw new RuntimeException('OpenAI API key is missing. Set OPENAI_API_KEY env or configure OpenAIClient.');
+            throw new LlmApiException('OpenAI API key is missing. Set OPENAI_API_KEY env or configure OpenAIClient.', 401, null, $payload);
         }
 
-        $response = $this->httpClient->post('chat/completions', [
-            'json' => $payload,
-        ]);
+        try {
+            $response = $this->httpClient->post('chat/completions', [
+                'json' => $payload,
+            ]);
+        } catch (\Throwable $e) {
+            throw new LlmApiException("OpenAI HTTP request failed: {$e->getMessage()}", (int) $e->getCode(), $e, $payload);
+        }
 
-        $body = (string)$response->getBody();
+        $body = (string) $response->getBody();
         $data = json_decode($body, true);
 
         if (! is_array($data)) {
-            throw new RuntimeException('Invalid JSON response from OpenAI API.');
+            throw new LlmApiException('Invalid JSON response from OpenAI API.', 500, null, $payload);
         }
 
         return $data;

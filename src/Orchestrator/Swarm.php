@@ -7,9 +7,9 @@ namespace HyperfAgents\Orchestrator;
 use HyperfAgents\Agent\AgentInterface;
 use HyperfAgents\Agent\Handoff;
 use HyperfAgents\Client\OpenAIClient;
-use HyperfAgents\Tool\ConcurrentToolExecutorInterface;
+use HyperfAgents\Exception\LlmApiException;
 use HyperfAgents\Tool\ConcurrentToolExecutor;
-use RuntimeException;
+use HyperfAgents\Tool\ConcurrentToolExecutorInterface;
 
 class Swarm implements SwarmInterface
 {
@@ -44,12 +44,13 @@ class Swarm implements SwarmInterface
         $history = $messages;
         $turns = 0;
         $startTime = microtime(true);
+        $status = RunStatus::MAX_TURNS_REACHED;
 
         while ($turns < $maxTurns) {
             ++$turns;
 
-            // 1. Build messages payload with current agent's instructions
-            $payloadMessages = $this->buildMessages($activeAgent, $history);
+            // 1. Build messages payload with current agent's instructions (injected with context)
+            $payloadMessages = $this->buildMessages($activeAgent, $history, $contextVariables);
 
             // 2. Format tool definitions for OpenAI
             $toolsPayload = $this->buildToolsPayload($activeAgent);
@@ -69,7 +70,7 @@ class Swarm implements SwarmInterface
             $choice = $response['choices'][0]['message'] ?? null;
 
             if (! $choice) {
-                throw new RuntimeException('Empty or malformed completion response from OpenAI.');
+                throw new LlmApiException('Empty or malformed completion response from OpenAI.', 500, null, $payload);
             }
 
             $history[] = $choice;
@@ -78,6 +79,7 @@ class Swarm implements SwarmInterface
             $toolCalls = $choice['tool_calls'] ?? [];
             if (empty($toolCalls)) {
                 // No tools called; loop ends with final text reply
+                $status = RunStatus::COMPLETED;
                 break;
             }
 
@@ -114,15 +116,21 @@ class Swarm implements SwarmInterface
             lastAgent: $activeAgent,
             contextVariables: $contextVariables,
             turns: $turns,
-            totalLatencyMs: $elapsed
+            totalLatencyMs: $elapsed,
+            status: $status
         );
     }
 
-    protected function buildMessages(AgentInterface $agent, array $history): array
+    /**
+     * @param array<int, array<string, mixed>> $history
+     * @param array<string, mixed> $contextVariables
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildMessages(AgentInterface $agent, array $history, array $contextVariables = []): array
     {
         $systemMessage = [
             'role' => 'system',
-            'content' => $agent->getInstructions(),
+            'content' => $agent->getInstructions($contextVariables),
         ];
 
         return array_merge([$systemMessage], $history);

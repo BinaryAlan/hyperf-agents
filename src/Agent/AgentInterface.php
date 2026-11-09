@@ -12,7 +12,10 @@ interface AgentInterface
 
     public function getModel(): string;
 
-    public function getInstructions(): string;
+    /**
+     * @param array<string, mixed> $contextVariables
+     */
+    public function getInstructions(array $contextVariables = []): string;
 
     /**
      * @return array<string, array{handler: ToolInterface|callable, description: string, parameters: array}>
@@ -20,6 +23,13 @@ interface AgentInterface
     public function getTools(): array;
 
     public function addTool(string $name, ToolInterface|callable $tool, ?string $description = null, array $parameters = []): static;
+
+    /**
+     * Fluent helper to add an agent-to-agent handoff.
+     *
+     * @param array<string, mixed> $contextVariables
+     */
+    public function addHandoff(AgentInterface $targetAgent, ?string $name = null, ?string $description = null, array $contextVariables = []): static;
 
     public function toArray(): array;
 }
