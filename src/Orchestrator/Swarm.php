@@ -11,7 +11,7 @@ use HyperfAgents\Tool\ConcurrentToolExecutorInterface;
 use HyperfAgents\Tool\ConcurrentToolExecutor;
 use RuntimeException;
 
-class Swarm
+class Swarm implements SwarmInterface
 {
     public function __construct(
         protected ?OpenAIClient $client = null,

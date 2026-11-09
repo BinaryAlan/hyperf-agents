@@ -26,7 +26,7 @@ class ConfigProvider
                     'id' => 'config',
                     'description' => 'The config for Hyperf Agents.',
                     'source' => __DIR__ . '/../publish/hyperf_agents.php',
-                    'destination' => BASE_PATH . '/config/autoload/hyperf_agents.php',
+                    'destination' => (defined('BASE_PATH') ? BASE_PATH : '') . '/config/autoload/hyperf_agents.php',
                 ],
             ],
         ];
