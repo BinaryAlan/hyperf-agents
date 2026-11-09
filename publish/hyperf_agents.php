@@ -44,7 +44,6 @@ return [
     */
     'concurrency' => [
         'max_tool_concurrency' => (int) env('AGENT_MAX_TOOL_CONCURRENCY', 20),
-        'tool_timeout' => (float) env('AGENT_TOOL_TIMEOUT', 30.0),
     ],
 
     /*

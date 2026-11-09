@@ -27,7 +27,7 @@ While Python-based AI agent libraries (such as LangChain, AutoGen, and CrewAI) d
 **Hyperf Agents** solves this by leveraging Hyperf's coroutine engine:
 1. **Parallel Tool Invocation**: When an OpenAI model requests 5 tool calls simultaneously, `hyperf-agents` runs them in parallel coroutines, slashing execution time to $O(\max t_i)$.
 2. **Multi-Agent Handoff**: Native implementation of agent-to-agent delegation via typed `Handoff` objects.
-3. **Enterprise Resilience**: Built-in circuit breakers and exponential backoff retry mechanisms to handle OpenAI rate limits (HTTP 429) and upstream timeouts gracefully.
+3. **Enterprise Resilience**: Built-in in-process circuit breakers and exponential backoff retry mechanisms to handle OpenAI rate limits (HTTP 429) and upstream timeouts gracefully, fully configurable via published configuration.
 
 ---
 
@@ -58,7 +58,9 @@ graph TD
 
 ---
 
-## Performance Comparison
+## Performance Comparison (Illustrative Targets)
+
+> *Note: The metrics below are illustrative theoretical targets comparing non-blocking coroutine parallel execution against synchronous blocking PHP execution.*
 
 | Execution Pattern | 4 Sequential Tool Calls | Hyperf Coroutine Parallel Tool Calls | Performance Gain |
 | :--- | :--- | :--- | :--- |
@@ -129,7 +131,7 @@ echo $result->getContent();
 ### 核心亮点
 1. **并发工具调用加速（Parallel Tool Calling）**：当模型单轮返回多个函数调用请求（如同时查询用户画像、订单状态、库存信息）时，自动利用 Hyperf 协程池并行发起，整体耗时从累加耗时缩短至最大单项耗时。
 2. **轻量智能体接力（Swarm Handoff）**：基于强类型 `Handoff` 对象在不同专精 Agent 间无缝移交对话上下文与权限。
-3. **企业级生产韧性**：针对 OpenAI API 频繁遇到的 HTTP 429 限流、网络抖动与第三方工具超时，深度集成 Hyperf 原生熔断器（CircuitBreaker）与指数退避重试（Retry）。
+3. **企业级生产韧性**：针对 OpenAI API 频繁遇到的 HTTP 429 限流、网络抖动与上游超时，内置进程内熔断器（CircuitBreaker）与指数退避重试（Retry）机制，支持通过发布配置文件灵活配置与调优。
 
 ---
 
@@ -138,6 +140,7 @@ echo $result->getContent();
 - [x] Coroutine-native Swarm orchestration loop
 - [x] Parallel tool executor (`Hyperf\Coroutine\parallel`)
 - [x] Typed Agent & Handoff specification
+- [x] In-process Circuit Breaker & Exponential Backoff Retry
 - [ ] OpenAI Responses API (2026 spec) streaming SSE support
 - [ ] Model Context Protocol (MCP) tool provider integration
 - [ ] Distributed Agent state persistence via Redis coroutine pool

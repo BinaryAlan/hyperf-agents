@@ -7,22 +7,88 @@ namespace HyperfAgents\Orchestrator;
 use HyperfAgents\Agent\AgentInterface;
 use HyperfAgents\Agent\Handoff;
 use HyperfAgents\Client\OpenAIClient;
+use HyperfAgents\Client\OpenAIClientInterface;
+use HyperfAgents\Config\AgentConfig;
 use HyperfAgents\Exception\LlmApiException;
+use HyperfAgents\Resilience\CircuitBreaker;
 use HyperfAgents\Tool\ConcurrentToolExecutor;
 use HyperfAgents\Tool\ConcurrentToolExecutorInterface;
 
 class Swarm implements SwarmInterface
 {
-    protected OpenAIClient $client;
+    protected OpenAIClientInterface $client;
 
     protected ConcurrentToolExecutorInterface $toolExecutor;
 
     public function __construct(
-        ?OpenAIClient $client = null,
-        ?ConcurrentToolExecutorInterface $toolExecutor = null
+        ?OpenAIClientInterface $client = null,
+        ?ConcurrentToolExecutorInterface $toolExecutor = null,
+        protected ?AgentConfig $config = null
     ) {
         $this->client = $client ?? new OpenAIClient();
         $this->toolExecutor = $toolExecutor ?? new ConcurrentToolExecutor();
+    }
+
+    public function getConfig(): ?AgentConfig
+    {
+        return $this->config;
+    }
+
+    /**
+     * @param AgentConfig|array<string, mixed> $config
+     */
+    public static function fromConfig(AgentConfig|array $config): self
+    {
+        $agentConfig = $config instanceof AgentConfig ? $config : AgentConfig::fromArray($config);
+
+        $driver = $agentConfig->getDriverConfig();
+        $apiKey = $driver['api_key'];
+        $baseUrl = $driver['base_url'];
+
+        /** @var array<string, mixed> $clientOptions */
+        $clientOptions = $driver['client_options'];
+        $clientOptions['timeout'] = $driver['timeout'];
+
+        $retry = $agentConfig->getRetryConfig();
+        $maxAttempts = 3;
+        $initialDelayMs = 200;
+        $multiplier = 2.0;
+
+        if ($retry['enabled']) {
+            $maxAttempts = $retry['max_attempts'];
+            $initialDelayMs = $retry['initial_delay_ms'];
+            $multiplier = $retry['multiplier'];
+        } else {
+            $maxAttempts = 1;
+        }
+
+        $cbConfig = $agentConfig->getCircuitBreakerConfig();
+        $circuitBreaker = null;
+
+        if ($cbConfig['enabled']) {
+            $circuitBreaker = new CircuitBreaker(
+                failureThreshold: $cbConfig['failure_threshold'],
+                recoverySeconds: $cbConfig['recovery_time']
+            );
+        }
+
+        $client = new OpenAIClient(
+            apiKey: $apiKey,
+            baseUrl: $baseUrl,
+            container: null,
+            clientOptions: $clientOptions,
+            maxAttempts: $maxAttempts,
+            initialDelayMs: $initialDelayMs,
+            multiplier: $multiplier,
+            sleeper: null,
+            circuitBreaker: $circuitBreaker
+        );
+
+        $executor = new ConcurrentToolExecutor(
+            maxConcurrency: $agentConfig->getMaxToolConcurrency()
+        );
+
+        return new self($client, $executor, $agentConfig);
     }
 
     /**

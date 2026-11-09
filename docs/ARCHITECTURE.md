@@ -67,13 +67,15 @@ $triageAgent->addTool(
 When a tool returns a `Handoff`, the `Swarm` orchestrator swaps the active agent, injects the new agent's system prompt, and retains execution context without restarting the session.
 
 ### 4.3 Enterprise Fault Tolerance
-Production agent deployments face frequent upstream rate limits (HTTP 429) and tool timeouts. *Hyperf Agents* incorporates:
-- **Circuit Breakers (`Hyperf\CircuitBreaker`)**: Temporarily halts traffic to failing external tools before they cascade into system-wide degradation.
-- **Exponential Backoff (`Hyperf\Retry`)**: Automatically retries transient upstream network and model endpoint failures with coroutine sleep.
+Production agent deployments face frequent upstream rate limits (HTTP 429) and network timeouts. *Hyperf Agents* incorporates:
+- **In-Process Circuit Breakers (`HyperfAgents\Resilience\CircuitBreaker`)**: Temporarily halts traffic to failing external endpoints before they cascade into system-wide degradation, with stateful closed, open, and half-open transitions.
+- **Exponential Backoff Retry**: Automatically retries transient upstream network and model endpoint failures (HTTP 429 and 5xx) with configurable coroutine sleep delays.
 
 ---
 
-## 5. Performance Benchmarks
+## 5. Performance Benchmarks (Illustrative Targets)
+
+> *Note: The metrics below are illustrative theoretical targets comparing non-blocking coroutine parallel execution against sequential blocking execution.*
 
 | Metric | Sequential Execution (Traditional PHP) | Hyperf Agents (Coroutine Parallel) | Gain |
 | :--- | :--- | :--- | :--- |
@@ -87,7 +89,8 @@ Production agent deployments face frequent upstream rate limits (HTTP 429) and t
 
 - **Phase 1: Core Engine (Current)**
   - Swarm loop orchestrator, typed Agent, and Handoff specifications.
-  - Parallel tool executor using coroutine channels.
+  - Parallel tool executor (`Hyperf\Coroutine\parallel`).
+  - In-process circuit breaker and exponential backoff retry resilience.
 - **Phase 2: Protocol Expansion**
   - Native streaming SSE adapter with backpressure controls.
   - Integration with OpenAI Responses API (2026 spec) and Realtime WebRTC audio agents.

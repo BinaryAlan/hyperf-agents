@@ -13,8 +13,7 @@ use function Hyperf\Coroutine\parallel;
 class ConcurrentToolExecutor implements ConcurrentToolExecutorInterface
 {
     public function __construct(
-        protected int $maxConcurrency = 20,
-        protected float $timeoutSeconds = 30.0
+        protected int $maxConcurrency = 20
     ) {
     }
 

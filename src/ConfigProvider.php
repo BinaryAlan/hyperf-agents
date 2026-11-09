@@ -10,6 +10,7 @@ class ConfigProvider
     {
         return [
             'dependencies' => [
+                Client\OpenAIClientInterface::class => Client\OpenAIClient::class,
                 Orchestrator\SwarmInterface::class => Orchestrator\Swarm::class,
                 Tool\ConcurrentToolExecutorInterface::class => Tool\ConcurrentToolExecutor::class,
             ],
